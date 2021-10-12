@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import time
 import random
+import os
 
 # Imcomplete board
 incomplete_board1 = [
@@ -51,7 +52,19 @@ class Board():
     def __init__(self, board):
         self.x_lines = create_x_lines(board)
         self.tiles = self.scan_board(board)
+        self.update_static_tiles()
         self.detect_valid()
+
+    def check_static(self):
+        tiles = dict()
+        for key in self.tiles:
+            if not self.tiles[key].static:
+                tiles[key] = self.tiles[key]
+        return tiles
+
+    def update_static_tiles(self):
+        self.nonstatic_tiles = self.check_static()
+
 
     def scan_board(self, board):
         tiles = dict()
@@ -85,6 +98,34 @@ class Board():
                     tiles[str(x) + 'x' + str(y)].static = False
         return tiles
 
+    def update_x_lines(self):
+        for x in range(9):
+            for y in range(9):
+                key = str(x) + 'x' + str(y)
+                if self.tiles[key].value != self.x_lines[x][y]:
+                    self.x_lines[x][y] = self.tiles[key].value
+
+
+
+    # def random_brute_force(self):
+    #     for k in self.tiles.keys():
+    #         if self.tiles[k].static: continue
+    #         tile_check = self.tiles[k]
+    #         self.tiles[k].checking = True
+    #         for valid_value in tile_check.valid_tiles:
+    #             self.tiles[k].update_value(valid_value)
+    #             for check_key in self.tiles.keys():
+    #                 if check_key == k: continue #don't check self
+    #                 if self.tiles[check_key].static: continue
+    #                 random_tile_index = random.randint(0, self.tiles[check_key].valid_tiles.len())
+    #                 self.tiles
+
+
+
+
+
+
+
     """Check neighbor tiles to determine invalid and valid values on each tile"""
     def detect_valid(self):
         for key in self.tiles.keys():
@@ -103,6 +144,8 @@ class Tile():
         self.block_line = []
         self.valid_tiles = {}
         self.invalid_tiles = {}
+        self.try_value = []
+        self.checking = False
 
     def update_valid_tiles(self):
         if self.static:
@@ -112,9 +155,10 @@ class Tile():
         self.valid_tiles = all.difference(self.invalid_tiles)
 
 
-    def update_value(self):
+    def update_value(self, value):
         if self.static:
             return
+        self.value = value
 
 """
 Create a class for board
@@ -149,6 +193,18 @@ def display_xlines(x_lines):
         block3 = ''.join(str(e) for e in line[6:9])
         print('|'+block1+'|'+block2+'|'+block3+'|')
     print('-'*13)
+
+
+def xlines_to_board(x_lines):
+    board = []
+    for line in x_lines:
+        block1 = line[0:3]
+        block2 = line[3:6]
+        block3 = line[6:9]
+        new_line = [block1, block2, block3]
+        board.append(new_line)
+    return board
+
 
 
 """Print the board"""
@@ -226,31 +282,49 @@ def board_checker(board):
             valid = False
     return valid
 
-def solve_it(board):
-    #x_lines = create_x_lines(board)
-    #y_lines = create_y_lines(board)
-    #block_lines = create_block_lines(board)
-    pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def main():
+"""infinite loop randomint bruteforce (no brain)"""
+def solve_it_random_brute():
     display(incomplete_board1)
     b = Board(incomplete_board1)
-    display_xlines(b.x_lines)
+    board = xlines_to_board(b.x_lines)
+    print(b.x_lines)
+    b.update_x_lines()
+    # find tiles with only one possible value and set them as static
+    for key in b.nonstatic_tiles:
+        tile = b.nonstatic_tiles[key]
+        if len(tile.valid_tiles) > 1: continue
+        value = tile.valid_tiles.pop()
+        tile.update_value(value)
+        tile.static = True
+    b.update_static_tiles()
+    # Loop through non-static tiles and set their values to a random valid int
+    while not board_checker(board):
+        seed = dict()
+        for key in b.nonstatic_tiles:
+            tile = b.nonstatic_tiles[key]
+            i = random.randint(0,len(tile.valid_tiles)-1)
+            value = list(tile.valid_tiles)[i]
+            tile.update_value(value)
+            seed[key] = value
+        # Update the tables and display it
+        b.update_x_lines()
+        board = xlines_to_board(b.x_lines)
+        os.system('clear')
+        display(board)
+        print('Guess:', seed)
+        # run the sudoko validation function to check if it's solved
+        print('Complete:', board_checker(board))
+    pass
+
+def main():
+    solve_it_random_brute()
+
+
+
+
+
+    #print(board_checker(board))
+    #display_xlines(b.x_lines)
 
     #display(b.x_lines)
     # for key in b.tiles.keys():
