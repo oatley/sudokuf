@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-import time
-import random
-import os
 
+"""
+Sudoku puzzle solver
+author: Andrew ow
+co-author: beer and coffee
+"""
 
 # Invalid board
 board_keys = [
@@ -246,6 +248,7 @@ class Board():
         for key in self.tiles.keys():
             self.tiles[key].update_valid_tiles()
 
+"""object to store individual tile information"""
 class Tile():
     def __init__(self, x, y, value):
         self.static = True
@@ -261,6 +264,7 @@ class Tile():
         self.try_value = []
         self.checking = False
 
+    """find all valid values for each tile"""
     def update_valid_tiles(self):
         if self.static:
             return [self.value]
@@ -268,6 +272,7 @@ class Tile():
         self.invalid_tiles = set(self.x_line + self.y_line + self.block_line)
         self.valid_tiles = all.difference(self.invalid_tiles)
 
+    """only allow changes to non-static values"""
     def update_value(self, value):
         if self.static:
             return
@@ -357,6 +362,7 @@ def board_checker(board):
             valid = False
     return valid
 
+"""Prepare the sudoku board and start the recursive function"""
 def start_combo(board):
     display(board)
     b = Board(board)
@@ -367,12 +373,13 @@ def start_combo(board):
         possy[key] = b.nonstatic_tiles[key].valid_tiles.copy()
     b.combos = []
     b.combo_length = len(possy)
-    print('sudokuf: combo length set', b.combo_length)
-    print('sudokuf: starting recurse')
+    print('sudokuf -> combo length set', b.combo_length)
+    print('sudokuf -> starting recurse')
     combo = start_combo_recurse_2(possy, b)
 
+"""Recursive sudoku solution"""
 def start_combo_recurse_2(possy, b, combo={}):
-    # if possy == 0 and combo != b.combo_length delete the heck out of combo
+    # Check if the current combination solves the puzzle and exit
     if len(possy) < 1 and 'x' not in combo.values() and len(combo) == b.combo_length:
         if combo not in b.combos:
             b.solutions += 1
@@ -388,26 +395,29 @@ def start_combo_recurse_2(possy, b, combo={}):
                 display(board)
                 exit()
             return
+    # Check if the current combination is void
     if len(possy) < 1 and len(combo) < b.combo_length:
         print ('sudokuf -> broken combo')#, combo)
         return
-    p = possy.copy()
+    p = possy.copy() # possy is a set of non-static tiles and their possible valid values
     combo_copy = combo.copy()
     current = p.popitem() # current is a tuple key[0] value[1] pair
-    for v in current[1]: # set of values {1,2,3}
+    for v in current[1]: # attempt to use "valid" values and for a combination
         combo_copy[current[0]] = v
-        # check to see if it's in the same row, col, or block as last tile
-        for tile in combo_copy.keys():
+        for tile in combo_copy.keys(): # This loop finds invalid combinations early to save time
+            # detect invalid combinations based on block positions
             if tile != current[0] and tile in b.tiles[current[0]].block_tile_keys: # detected shared col
                 if combo_copy[current[0]] == combo_copy[tile]: # detected shared value in col
                     #print('sudokuf -> found shared value ', combo_copy, b.tiles[current[0]].y_tile_keys)
                     combo_copy[current[0]] = 'x'
                     continue
+            # detect invalid combinations based on row tile positions
             if tile != current[0] and tile in b.tiles[current[0]].y_tile_keys: # detected shared col
                 if combo_copy[current[0]] == combo_copy[tile]: # detected shared value in col
                     #print('sudokuf -> found shared value ', combo_copy, b.tiles[current[0]].y_tile_keys)
                     combo_copy[current[0]] = 'x'
                     continue
+            # detect invalid combinations based on column positions
             if tile != current[0] and tile in b.tiles[current[0]].x_tile_keys: # detected shared col
                 if combo_copy[current[0]] == combo_copy[tile]: # detected shared value in col
                     #print('sudokuf -> found shared value ', combo_copy, b.tiles[current[0]].x_tile_keys)
@@ -419,28 +429,11 @@ def start_combo_recurse_2(possy, b, combo={}):
                 return
     return
 
-def start_combo_recurse(possy, b, combo={}):
-    if len(possy) < 1 or len(combo) == b.combo_length:
-        if combo not in b.combos:
-            #print('adding c to combos')
-            b.combos.append(combo)
-            b.solutions += 1
-        return
-    p = possy.copy()
-    combo_copy = combo.copy()
-    current = p.popitem() # current is a tuple key[0] value[1] pair
-    for v in current[1]: # set of values {1,2,3}
-        combo_copy[current[0]] = v
-
-        print( len(combo), b.solutions, combo_copy.values() )
-        start_combo_recurse(p, b, combo_copy)
-    return
-
 def main():
     #start_combo(incomplete_board1) # easy
-    #start_combo(incomplete_board4) # maxtest # try and beat .12 I GOT .25!!!!
+    start_combo(incomplete_board4) # maxtest # try and beat .12 I GOT .25!!!!
     #start_combo(incomplete_board5) # maxtest + 2 deletions
-    start_combo(incomplete_board6) # VERY HARD
+    #start_combo(incomplete_board6) # VERY HARD
 
 if __name__ == '__main__':
     main()
