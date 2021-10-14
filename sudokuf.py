@@ -3,20 +3,6 @@ import time
 import random
 import os
 
-# Imcomplete board
-# incomplete_board1 = [
-#     [[8,4,False],[False,9,False],[3,2,1]],
-#     [[3,False,9],[8,2,1],[6,7,4]],
-#     [[False,2,False],[False,4,3],[9,8,5]],
-#
-#     [[False,3,2],[4,False,False],[1,6,8]],
-#     [[9,False,4],[3,1,6],[7,5,2]],
-#     [[6,False,False],[2,8,False],[4,9,False]],
-#
-#     [[5,6,8],[9,3,4],[2,1,7]],
-#     [[2,7,3],[False,False,False],[5,4,9]],
-#     [[False,9,1],[5,7,2],[8,3,6]],
-# ]
 
 incomplete_board1 = [
     [[8,4,0],[0,9,0],[3,2,1]],
@@ -30,6 +16,37 @@ incomplete_board1 = [
     [[5,6,8],[9,3,4],[2,1,7]],
     [[2,7,3],[0,0,0],[5,4,9]],
     [[0,9,1],[5,7,2],[8,3,6]],
+]
+
+
+
+# MAX TEST
+incomplete_board4 = [
+    [[0,0,0],[0,0,0],[0,0,0]],
+    [[0,3,0],[1,0,6],[2,0,7]],
+    [[6,0,0],[0,3,0],[5,1,0]],
+
+    [[3,2,0],[0,0,9],[0,0,0]],
+    [[0,0,8],[0,0,5],[7,0,0]],
+    [[0,0,0],[8,0,0],[0,5,3]],
+
+    [[0,4,7],[0,9,0],[0,0,8]],
+    [[8,0,1],[7,0,2],[0,9,0]],
+    [[0,0,0],[0,0,0],[0,0,0]],
+]
+
+incomplete_board5 = [
+    [[0,0,0],[0,0,0],[0,0,0]],
+    [[0,3,0],[1,0,0],[2,0,7]],
+    [[6,0,0],[0,3,0],[5,1,0]],
+
+    [[3,2,0],[0,0,9],[0,0,0]],
+    [[0,0,8],[0,0,5],[7,0,0]],
+    [[0,0,0],[0,0,0],[0,5,3]],
+
+    [[0,4,7],[0,9,0],[0,0,8]],
+    [[8,0,1],[7,0,2],[0,9,0]],
+    [[0,0,0],[0,0,0],[0,0,0]],
 ]
 
 # Invalid board
@@ -96,11 +113,41 @@ class Board():
         self.x_lines = create_x_lines(board)
         self.tiles = self.scan_board(board)
         self.solutions = 0
+        self.setup_tile_keys()
         self.update_static_tiles()
         self.detect_valid()
 
-    # create a structure
 
+    def setup_tile_keys(self):
+        for tile in self.tiles.keys():
+            self.setup_x_tiles(tile)
+            self.setup_y_tiles(tile)
+
+
+    """for each tile store a list of keys for each tile that shares x with this tile"""
+    def setup_x_tiles(self, tile):
+        x_tiles = []
+        for t in self.tiles.keys():
+            if self.tiles[tile].x == self.tiles[t].x:
+                x_tiles.append(t)
+        self.tiles[tile].x_tile_keys = x_tiles
+
+    """for each tile store a list of keys for each tile that shares x with this tile"""
+    def setup_y_tiles(self, tile):
+        y_tiles = []
+        for t in self.tiles.keys():
+            if self.tiles[tile].y == self.tiles[t].y:
+                y_tiles.append(t)
+        self.tiles[tile].y_tile_keys = y_tiles
+
+    # def setup_block_tiles(self, tiles):
+    #     block_tiles = []
+    #     for x in range(0,9,3):
+    #         block_tiles.append(str(0+x) + '0') +
+    #         1+x][0] + board[2+x][0])
+    #         blocks.append(board[0+x][1] + board[1+x][1] + board[2+x][1])
+    #         blocks.append(board[0+x][2] + board[1+x][2] + board[2+x][2])
+    #     return blocks
 
     def check_static(self):
         tiles = dict()
@@ -174,6 +221,7 @@ class Tile():
         self.static = True
         self.x = x
         self.y = y
+        self.key = str(x) +'x' + str(y)
         self.value = value
         self.x_line = []
         self.y_line = []
@@ -189,6 +237,11 @@ class Tile():
         all = {1,2,3,4,5,6,7,8,9}
         self.invalid_tiles = set(self.x_line + self.y_line + self.block_line)
         self.valid_tiles = all.difference(self.invalid_tiles)
+
+    # def find_neighbor_keys(self, b):
+    #     for x in range(9)
+
+
 
     def update_value(self, value):
         if self.static:
@@ -209,25 +262,25 @@ create a class for each tile
 - delete conflicts and recurse ^
 """
 
-def display_xlines(x_lines):
-    print('-'*13)
-    count = 0
-    for l in x_lines:
-        if count == 3:
-            print('-'*13)
-            count = 0
-        count += 1
-        line = []
-        for i in range(9):
-            if l[i] == False:
-                line.append(0)
-            else:
-                line.append(l[i])
-        block1 = ''.join(str(e) for e in line[0:3])
-        block2 = ''.join(str(e) for e in line[3:6])
-        block3 = ''.join(str(e) for e in line[6:9])
-        print('|'+block1+'|'+block2+'|'+block3+'|')
-    print('-'*13)
+# def display_xlines(x_lines):
+#     print('-'*13)
+#     count = 0
+#     for l in x_lines:
+#         if count == 3:
+#             print('-'*13)
+#             count = 0
+#         count += 1
+#         line = []
+#         for i in range(9):
+#             if l[i] == False:
+#                 line.append(0)
+#             else:
+#                 line.append(l[i])
+#         block1 = ''.join(str(e) for e in line[0:3])
+#         block2 = ''.join(str(e) for e in line[3:6])
+#         block3 = ''.join(str(e) for e in line[6:9])
+#         print('|'+block1+'|'+block2+'|'+block3+'|')
+#     print('-'*13)
 
 def xlines_to_board(x_lines):
     board = []
@@ -257,7 +310,7 @@ def display(board):
                     x+=1
                     print('|', end="")
                     split_count_y = 0
-                print('{:d}'.format(char), end="")
+                print('{}'.format(char), end="")
                 split_count_y+=1
                 x+=1
         split_count_x+=1
@@ -340,17 +393,7 @@ def board_checker(board):
 
 
 
-"""
-Can you do a recursive function to detect and store all valid x columns?
-store the x columns instead of full board combinations
-OR
-place a number in a tile, recurse to next tiles
-OR
-modify the recursive function to remove valid tiles that are the same as what's getting searched?
 
-
-!!!!!method to check if tiles are in same row, col or block and if they are prevent them from sharing a value
-"""
 
 
 
@@ -364,10 +407,6 @@ def start_combo(board):
     possy = dict()
     for key in b.nonstatic_tiles.keys():
         possy[key] = b.nonstatic_tiles[key].valid_tiles.copy()
-    b.number_of_solutions = 1
-    for key in possy.keys():
-        b.number_of_solutions *= len(possy[key])
-    print('sudokuf: all possible combinations', b.number_of_solutions)
     #exit()
     # list of tile_dicts(tiles[key] = single_value)
     #print(possy)
@@ -375,55 +414,106 @@ def start_combo(board):
     b.combo_length = len(possy)
     print('sudokuf: combo length set', b.combo_length)
     print('sudokuf: starting recurse')
-    combo = start_combo_recurse(possy, b)
+    combo = start_combo_recurse_2(possy, b)
     #print(b.combos)
 
-    # change tiles in b.tiles
-    for c in b.combos:
-        for key in c.keys():
-            b.tiles[key].update_value(c[key])
-        b.update_x_lines()
-        board = xlines_to_board(b.x_lines)
-        #os.system('clear')
-        if board_checker(board):
-            print(c)
-            display(board)
-            print('Board Solved')
-            exit()
+    print('SCREEEEEEEEEE')
+    exit()
+
+
+    # print(b.combos)
+    # # change tiles in b.tiles
+    # for c in b.combos:
+    #     for key in c.keys():
+    #         b.tiles[key].update_value(c[key])
+    #     b.update_x_lines()
+    #     board = xlines_to_board(b.x_lines)
+    #     #os.system('clear')
+    #     if board_checker(board):
+    #         print(c)
+    #         display(board)
+    #         print('Board Solved')
+    #         exit()
 
     #print('Failed to solve')
 
-
-def start_combo_recurse(possy, b, combo={}):
-    if len(possy) < 1 or len(combo) == b.combo_length:
+def start_combo_recurse_2(possy, b, combo={}):
+    # if possy == 0 and combo != b.combo_length delete the heck out of combo
+    if len(possy) < 1 and 'x' not in combo.values() and len(combo) == b.combo_length:
         if combo not in b.combos:
-            print('adding c to combos')
+            b.solutions += 1
             b.combos.append(combo)
-        #     for key in combo.keys():
-        #         b.tiles[key].update_value(combo[key])
-        #     b.update_x_lines()
-        #     board = xlines_to_board(b.x_lines)
-        #     #os.system('clear')
-        #     if board_checker(board):
-        #         print(combo)
-        #         display(board)
-        #         print('Board Solved')
-        #         print('Number of solutions tried: ' + b.solutions)
-        #         exit()
-        #     else:
-        #         b.solutions +=1
+            print ('sudokuf -> found solution', combo, b.solutions)
+            for key in combo.keys():
+                b.tiles[key].update_value(combo[key])
+            b.update_x_lines()
+            board = xlines_to_board(b.x_lines)
+            if board_checker(board):
+                print ('sudokuf -> solved puzzle and exiting...')
+                print(combo)
+                display(board)
+                exit()
+            return
+    if len(possy) < 1 and len(combo) < b.combo_length:
+        print ('sudokuf -> broken combo', combo)
         return
     p = possy.copy()
     combo_copy = combo.copy()
     current = p.popitem() # current is a tuple key[0] value[1] pair
     for v in current[1]: # set of values {1,2,3}
         combo_copy[current[0]] = v
-        print( len(combo), b.solutions)
+        # check to see if it's in the same row, col, or block as last tile
+        for tile in combo_copy.keys():
+            if tile != current[0] and tile in b.tiles[current[0]].y_tile_keys: # detected shared col
+                if combo_copy[current[0]] == combo_copy[tile]: # detected shared value in col
+                    #print('sudokuf -> found shared value ', combo_copy, b.tiles[current[0]].y_tile_keys)
+                    combo_copy[current[0]] = 'x'
+                    continue
+            if tile != current[0] and tile in b.tiles[current[0]].x_tile_keys: # detected shared col
+                if combo_copy[current[0]] == combo_copy[tile]: # detected shared value in col
+                    #print('sudokuf -> found shared value ', combo_copy, b.tiles[current[0]].x_tile_keys)
+                    combo_copy[current[0]] = 'x'
+                    continue
+        if 'x' not in combo_copy.values():
+            start_combo_recurse_2(p, b, combo_copy)
+            if combo_copy in b.combos:
+                return
+    return
+
+def start_combo_recurse(possy, b, combo={}):
+    if len(possy) < 1 or len(combo) == b.combo_length:
+        if combo not in b.combos:
+            #print('adding c to combos')
+            b.combos.append(combo)
+            b.solutions += 1
+        return
+    p = possy.copy()
+    combo_copy = combo.copy()
+    current = p.popitem() # current is a tuple key[0] value[1] pair
+    for v in current[1]: # set of values {1,2,3}
+        combo_copy[current[0]] = v
+        # check to see if
+
+        print( len(combo), b.solutions, combo_copy.values() )
         start_combo_recurse(p, b, combo_copy)
     return
 
-
-
+"""
+    as you store each digit for a combonation check if you invalidate the lines and blocks
+"""
+    #     for key in combo.keys():
+    #         b.tiles[key].update_value(combo[key])
+    #     b.update_x_lines()
+    #     board = xlines_to_board(b.x_lines)
+    #     #os.system('clear')
+    #     if board_checker(board):
+    #         print(combo)
+    #         display(board)
+    #         print('Board Solved')
+    #         print('Number of solutions tried: ' + b.solutions)
+    #         exit()
+    #     else:
+    #         b.solutions +=1
 
 
 
@@ -452,41 +542,44 @@ def start_combo_recurse(possy, b, combo={}):
 
 
 
-"""infinite loop randomint bruteforce (no brain)"""
-def solve_it_random_brute():
-    display(incomplete_board1)
-    b = Board(incomplete_board1)
-    board = xlines_to_board(b.x_lines)
-    b.update_x_lines()
-    # find tiles with only one possible value and set them as static
-    for key in b.nonstatic_tiles:
-        tile = b.nonstatic_tiles[key]
-        if len(tile.valid_tiles) > 1: continue
-        value = tile.valid_tiles.pop()
-        tile.update_value(value)
-        tile.static = True
-    b.update_static_tiles()
-    # Loop through non-static tiles and set their values to a random valid int
-    while not board_checker(board):
-        seed = dict()
-        for key in b.nonstatic_tiles:
-            tile = b.nonstatic_tiles[key]
-            i = random.randint(0,len(tile.valid_tiles)-1)
-            value = list(tile.valid_tiles)[i]
-            tile.update_value(value)
-            seed[key] = value
-        # Update the tables and display it
-        b.update_x_lines()
-        board = xlines_to_board(b.x_lines)
-        os.system('clear')
-        display(board)
-        print('Guess:', seed)
-        # run the sudoko validation function to check if it's solved
-        print('Complete:', board_checker(board))
-    pass
+# """infinite loop randomint bruteforce (no brain)"""
+# def solve_it_random_brute():
+#     display(incomplete_board1)
+#     b = Board(incomplete_board1)
+#     board = xlines_to_board(b.x_lines)
+#     b.update_x_lines()
+#     # find tiles with only one possible value and set them as static
+#     for key in b.nonstatic_tiles:
+#         tile = b.nonstatic_tiles[key]
+#         if len(tile.valid_tiles) > 1: continue
+#         value = tile.valid_tiles.pop()
+#         tile.update_value(value)
+#         tile.static = True
+#     b.update_static_tiles()
+#     # Loop through non-static tiles and set their values to a random valid int
+#     while not board_checker(board):
+#         seed = dict()
+#         for key in b.nonstatic_tiles:
+#             tile = b.nonstatic_tiles[key]
+#             i = random.randint(0,len(tile.valid_tiles)-1)
+#             value = list(tile.valid_tiles)[i]
+#             tile.update_value(value)
+#             seed[key] = value
+#         # Update the tables and display it
+#         b.update_x_lines()
+#         board = xlines_to_board(b.x_lines)
+#         os.system('clear')
+#         display(board)
+#         print('Guess:', seed)
+#         # run the sudoko validation function to check if it's solved
+#         print('Complete:', board_checker(board))
+#     pass
 
 def main():
-    start_combo(incomplete_board1)
+    # try and beat .12
+    #start_combo(incomplete_board1) # easy
+    start_combo(incomplete_board4) # maxtest
+    #start_combo(incomplete_board5) # maxtest - 2
     #solve_it_random_brute()
 
 
