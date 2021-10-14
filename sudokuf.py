@@ -4,6 +4,21 @@ import random
 import os
 
 
+# Invalid board
+board_keys = [
+    [[0,0,0],[0,0,0],[0,0,0]],
+    [[0,0,0],[0,0,0],[0,0,0]],
+    [[0,0,0],[0,0,0],[0,0,0]],
+
+    [[0,0,0],[0,0,0],[0,0,0]],
+    [[0,0,0],[0,0,0],[0,0,0]],
+    [[0,0,0],[0,0,0],[0,0,0]],
+
+    [[0,0,0],[0,0,0],[0,0,0]],
+    [[0,0,0],[0,0,0],[0,0,0]],
+    [[0,0,0],[0,0,0],[0,0,0]],
+]
+
 incomplete_board1 = [
     [[8,4,0],[0,9,0],[3,2,1]],
     [[3,0,9],[8,2,1],[6,7,4]],
@@ -112,17 +127,72 @@ class Board():
     def __init__(self, board):
         self.x_lines = create_x_lines(board)
         self.tiles = self.scan_board(board)
+        self.blocks = create_block_lines(board)
         self.solutions = 0
         self.setup_tile_keys()
         self.update_static_tiles()
         self.detect_valid()
 
 
+    """Tiles are given: x_lines, y_lines, and blocks lines -> lists of neighbor keys on xyz axis"""
     def setup_tile_keys(self):
+        self.block_tiles = self.setup_block_lines()
+        #print(self.block_tile_keys)
         for tile in self.tiles.keys():
             self.setup_x_tiles(tile)
             self.setup_y_tiles(tile)
+            for block in self.block_tiles:
+                if tile in block:
+                    self.tiles[tile].block_tile_keys = block
+                    #print (tile, block)
 
+    """Create a list of tile keys organized by blocks: index0=0x0->2x2"""
+    def setup_block_lines(self):
+        # sorry reverse xy -> yXx
+        # order does not matter in this list
+        # list of lists
+        block_tiles =[]
+        block = [0, 1, 2]
+        for modrow in range(0,9,3):
+            for modcol in range(0,9,3):
+                col = 0 + modcol
+                row = 0 + modrow
+                block_list = []
+                for modblock in block:
+                    block_list.append(str(row+0) + 'x' + str(col+modblock))
+                    block_list.append(str(row+1) + 'x' + str(col+modblock))
+                    block_list.append(str(row+2) + 'x' + str(col+modblock))
+                block_tiles.append(block_list)
+        return block_tiles
+
+
+
+
+            #???
+            # row X col
+            # col = 0 + mod, 1 + mod, 2 + mod
+            # row = 1, 4, 7
+    # """Return a list of sets for each 3x3 block"""
+    # def create_block_lines(self, tile):
+    #     blocks = []
+    #     for mod in range(0,9,3):
+    #
+    #         row = 0 + mod # 0, 3, 6
+    #         row = 1 + mod # 1, 4, 7
+    #         row = 2 + mod # 2, 5, 8
+    #
+    #         col = 0
+    #         col = 1
+    #         col = 2
+    #
+    #         blocks.append(board[0+x][0] + board[1+x][0] + board[2+x][0])
+    #         blocks.append(board[0+x][1] + board[1+x][1] + board[2+x][1])
+    #         blocks.append(board[0+x][2] + board[1+x][2] + board[2+x][2])
+    #     return blocks
+    #
+    # """for each tile store a list of keys for each block of tiles"""
+    # def setup_block_tiles(self, tile):
+    #     pass
 
     """for each tile store a list of keys for each tile that shares x with this tile"""
     def setup_x_tiles(self, tile):
@@ -159,6 +229,7 @@ class Board():
     def update_static_tiles(self):
         self.nonstatic_tiles = self.check_static()
 
+    """Uhhh comment the datastructure maybe?"""
     def scan_board(self, board):
         tiles = dict()
         x_lines = self.x_lines
@@ -464,6 +535,11 @@ def start_combo_recurse_2(possy, b, combo={}):
         combo_copy[current[0]] = v
         # check to see if it's in the same row, col, or block as last tile
         for tile in combo_copy.keys():
+            if tile != current[0] and tile in b.tiles[current[0]].block_tile_keys: # detected shared col
+                if combo_copy[current[0]] == combo_copy[tile]: # detected shared value in col
+                    #print('sudokuf -> found shared value ', combo_copy, b.tiles[current[0]].y_tile_keys)
+                    combo_copy[current[0]] = 'x'
+                    continue
             if tile != current[0] and tile in b.tiles[current[0]].y_tile_keys: # detected shared col
                 if combo_copy[current[0]] == combo_copy[tile]: # detected shared value in col
                     #print('sudokuf -> found shared value ', combo_copy, b.tiles[current[0]].y_tile_keys)
